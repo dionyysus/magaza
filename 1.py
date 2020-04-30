@@ -4,23 +4,30 @@ secim = int(input("""
 Lütfen girişinizi belirleyiniz:
     1- Personel girişi
     2- Müşteri girişi
+    
 """))
 
+db = sqlite3.connect("Urun.yonetimi")
+dbcursor = db.cursor()
+
+
+dbcursor.execute("Create Table if not exists personel_giris (users, password)")
+dbcursor.execute("insert into personel_giris ('gizem','coskun')")
+db.commit()
+
+dbcursor.execute("Create Table if not exists urunler_tablosu (urun_ad, miktar)")
 
 if secim == 1:
     personel = []
-    db = sqlite3.connect("Urun.yonetimi")
-    urun = db.cursor()
 
-    urun.execute("Create Table if not exists personel_giris (users, password)")
     while True:
-        giris = int(input("Giriş yapmak için: 1, Kayıt olmak için: 2"))
+        giris = int(input("Giriş yapmak için: 1, Kayıt olmak için: 2 : "))
         if giris == 1:
             while True:
                 kullanici = input("Kullanıcı adınızı giriniz: ")
                 sifre = input("Şifre giriniz:")
-                urun.execute("SELECT * FROM personel_giris WHERE users = ? and password = ? ", (kullanici, sifre))
-                data = urun.fetchone()
+                dbcursor.execute("SELECT * FROM personel_giris WHERE users = ? and password = ? ", (kullanici, sifre))
+                data = dbcursor.fetchone()
                 if data:
                     print("\nGiriş yapıldı.\n")
                     break
@@ -36,15 +43,15 @@ if secim == 1:
                     continue
                 else:
                     personel += [kullanici_ad, pswrd]
-                    urun.execute("insert into personel_giris values (?, ?)", personel)
+                    dbcursor.execute("insert into personel_giris values (?, ?)", personel)
+                    db.commit()
                     print("Tebrikler kayıt oluşturuldu..")
                     break
         else:
             print("Geçersiz giriş..")
             continue
         print("Giriş yapılabilir.:)")
-    isim.commit()
-    isim.close()
+
 
     print("""        
     # # # # # # # # # # # # # # # # # # # # # # #
@@ -66,7 +73,6 @@ if secim == 1:
     # ad = sqlite3.connect("Urun.gizem")
     # a = ad.cursor()
 
-    a.execute("Create Table if not exists urunler_tablosu (urun_ad, miktar)")
     while True:
         secim = int(input("Yapmak istediğiniz işlemi seçiniz: "))
         if secim == 1:
@@ -76,41 +82,50 @@ if secim == 1:
                 urun_isim = input("Ürün adını giriniz:\n")
                 urun_miktar = int(input("Ürün miktarını giriniz:\n "))
                 i += 1
-                a.execute("SELECT * FROM urunler_tablosu WHERE urun_ad = ? and miktar = ? ", (urun_isim, urun_miktar))
-                data = a.fetchone()
+                dbcursor.execute("SELECT * FROM urunler_tablosu WHERE urun_ad = ? and miktar = ? ", (urun_isim, urun_miktar))
+                data = dbcursor.fetchone()
 
                 if data:
                     print("Ürünler kaydedildi.")
                     urunler += [urun_isim, urun_miktar]
-                    a.execute("insert into urunler_tablosu values ( ?, ?)", urunler)
+                    dbcursor.execute("insert into urunler_tablosu (urun_ad,urun_mevcut) values ('%s','%s')"  %(urun_isim,urun_miktar) )
+                    db.commit()
+
                     break
+
         elif secim == 2:
             while True:
                 urun_sil = input("Silmek istediğiniz ürünün adını giriniz: \n")
                 sil_miktar = int(input("Üründen kaç adet sileceğinizi giriniz:\n "))
-                a.execute("SELECT * FROM urunler_tablosu WHERE urunSil = ? and silMiktar = ?", (urun_sil, sil_miktar))
-                data = a.fetchone()
+
+                # @TODO - urun adina gore urunu bul sonra DELETE komutu ile sil
+                """
+                dbcursor.execute("SELECT * FROM urunler_tablosu WHERE urunSil = ? and silMiktar = ?", (urun_sil, sil_miktar))
+                data = dbcursor.fetchone()
                 if data:
                     urunler.remove(urun_sil, sil_miktar)
-                    a.execute("insert into urunler_tablosu values (?, ?)", urunler)
+                    dbcursor.execute("insert into urunler_tablosu values (?, ?)", urunler)
                     break
+                """
         else:
             print("Hatalı şeçim yaptınız.")
             continue
-    ad.commit()
-    ad.close()
+
+
 if secim == 2:
-    print("# # # # # # # # # # # # # # # # # # # # # # #")
-    print("#            S A T I Ş  M E N Ü S Ü         #")
-    print("# # # # # # # # # # # # # # # # # # # # # # #")
-    print("#                                           #")
-    print("#                                           #")
-    print("#    Müşteri Adı"
-          "     Miktar"
-          "     Tutar")
-    print("# # # # # # # # # # # # # # # # # # # # # # #")
-    print("#               #")
-    print("#                                           #")
-    print("# # # # # # # # # # # # # # # # # # # # # # #")
+    print("""
+    # # # # # # # # # # # # # # # # # # # # # # #
+    #            S A T I Ş  M E N Ü S Ü         #
+    # # # # # # # # # # # # # # # # # # # # # # #
+    #                                           #
+    #                                           #
+    #    Müşteri Adı
+               Miktar
+               Tutar
+    # # # # # # # # # # # # # # # # # # # # # # #
+    #                                           #
+    #                                           #
+    # # # # # # # # # # # # # # # # # # # # # # #
+    """)
 
     islem = int(input("Almak istediğiniz ürünü giriniz: "))
