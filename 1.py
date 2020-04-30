@@ -7,19 +7,21 @@ Lütfen girişinizi belirleyiniz:
     
 """))
 
-db = sqlite3.connect("Urun.yonetimi")
+db = sqlite3.connect("veritabani.db")
 dbcursor = db.cursor()
 
 
-dbcursor.execute("Create Table if not exists personel_giris (users, password)")
-dbcursor.execute("insert into personel_giris ('gizem','coskun')")
-db.commit()
+#dbcursor.execute("CREATE TABLE IF NOT EXISTS personel_giris (users, password)")
+#dbcursor.execute("insert into personel_giris ('gizem','coskun')")
+#db.commit()
 
-dbcursor.execute("Create Table if not exists urunler_tablosu (urun_ad, miktar)")
+#dbcursor.execute("CREATE TABLE IF NOT EXISTS urunler (urun_ID INTEGER PRIMARY KEY AUTOINCREMENT, urun_ad STRING (50), urun_fiyat DECIMAL, urun_mevcut INTEGER");
+
 
 if secim == 1:
     personel = []
 
+    """
     while True:
         giris = int(input("Giriş yapmak için: 1, Kayıt olmak için: 2 : "))
         if giris == 1:
@@ -34,6 +36,7 @@ if secim == 1:
                 else:
                     print("\n Girdiğiniz bilgilere uygun bir kayıt yok. Lütfen kayıt olunuz!")
             break
+
         elif giris == 2:
             while True:
                 kullanici_ad = input("Kullanıcı adınızı belirleyiniz: ")
@@ -52,7 +55,7 @@ if secim == 1:
             continue
         print("Giriş yapılabilir.:)")
 
-
+    """
     print("""        
     # # # # # # # # # # # # # # # # # # # # # # #
     #            Ü R Ü N  M E N Ü S Ü           #
@@ -70,8 +73,6 @@ if secim == 1:
     """)
 
     urunler = []
-    # ad = sqlite3.connect("Urun.gizem")
-    # a = ad.cursor()
 
     while True:
         secim = int(input("Yapmak istediğiniz işlemi seçiniz: "))
@@ -82,21 +83,40 @@ if secim == 1:
                 urun_isim = input("Ürün adını giriniz:\n")
                 urun_miktar = int(input("Ürün miktarını giriniz:\n "))
                 i += 1
-                dbcursor.execute("SELECT * FROM urunler_tablosu WHERE urun_ad = ? and miktar = ? ", (urun_isim, urun_miktar))
+
+                ## HATALI KOD. OLMAYAN URUN ICIN SORGULAMA YAPILIYOR
+                dbcursor.execute("SELECT * FROM urunler WHERE urun_ad = '%s' " % (urun_isim))
                 data = dbcursor.fetchone()
 
+                #urun adi varsa miktar guncellenir
                 if data:
-                    print("Ürünler kaydedildi.")
-                    urunler += [urun_isim, urun_miktar]
-                    dbcursor.execute("insert into urunler_tablosu (urun_ad,urun_mevcut) values ('%s','%s')"  %(urun_isim,urun_miktar) )
+                    dbcursor.execute("update urunler set urun_mevcut = %s WHERE urun_adi='%s' values ('%s','%s')"  % ((data[1]+int(urun_miktar)), urun_isim) )
                     db.commit()
+                # urun yoksa eklenir
+                else:
+                    dbcursor.execute(
+                        "insert into urunler (urun_ad, urun_mevcut) values ('%s','%s')" % (urun_isim, urun_miktar))
+                    db.commit()
+                    # islem bitmeden kullaniciya geri bildirim yapilmaz
+                    print("Ürünler kaydedildi.")
 
                     break
 
         elif secim == 2:
             while True:
-                urun_sil = input("Silmek istediğiniz ürünün adını giriniz: \n")
+                urun_adi = input("Silmek istediğiniz ürünün adını giriniz: \n")
                 sil_miktar = int(input("Üründen kaç adet sileceğinizi giriniz:\n "))
+
+                dbcursor.execute("SELECT * FROM urunler WHERE urun_ad = '%s' " % (urun_adi))
+                data = dbcursor.fetchone()
+                if data:
+                    try:
+                        dbcursor.execute("DELETE FROM urunler WHERE urun_ad='%s' " % urun_adi)
+                        db.commit()
+                        print('Urun silindi')
+                    except:
+                        print('Hata: Urun silinemedi')
+
 
                 # @TODO - urun adina gore urunu bul sonra DELETE komutu ile sil
                 """
