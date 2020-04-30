@@ -1,67 +1,82 @@
 import sqlite3
 
-secim = int(input("""
-Lütfen girişinizi belirleyiniz:
-    1- Personel girişi
-    2- Müşteri girişi
-    
-"""))
 
 db = sqlite3.connect("veritabani.db")
 dbcursor = db.cursor()
+
+GIRIS_GEREKLI = False
 
 
 #dbcursor.execute("CREATE TABLE IF NOT EXISTS personel_giris (users, password)")
 #dbcursor.execute("insert into personel_giris ('gizem','coskun')")
 #db.commit()
-
 #dbcursor.execute("CREATE TABLE IF NOT EXISTS urunler (urun_ID INTEGER PRIMARY KEY AUTOINCREMENT, urun_ad STRING (50), urun_fiyat DECIMAL, urun_mevcut INTEGER");
 
 
-if secim == 1:
-    personel = []
+def KullaniciGirisi():
 
-    """
+    kullanici = input("Kullanıcı adınızı giriniz: ")
+    sifre = input("Şifre giriniz:")
+    dbcursor.execute("SELECT * FROM personel_giris WHERE users = ? and password = ? ", (kullanici, sifre))
+    data = dbcursor.fetchone()
+    if data:
+        print("\nGiriş yapıldı.\n")
+        return True
+    else:
+        print("\n Girdiğiniz bilgilere uygun bir kayıt yok. Lütfen kayıt olunuz!")
+        return False
+
+
+
+
+def KullaniciKayit(kullanici_turu=1):
     while True:
-        giris = int(input("Giriş yapmak için: 1, Kayıt olmak için: 2 : "))
-        if giris == 1:
-            while True:
-                kullanici = input("Kullanıcı adınızı giriniz: ")
-                sifre = input("Şifre giriniz:")
-                dbcursor.execute("SELECT * FROM personel_giris WHERE users = ? and password = ? ", (kullanici, sifre))
-                data = dbcursor.fetchone()
-                if data:
-                    print("\nGiriş yapıldı.\n")
-                    break
-                else:
-                    print("\n Girdiğiniz bilgilere uygun bir kayıt yok. Lütfen kayıt olunuz!")
-            break
+        kullanici_ad = input("Kullanıcı adınızı belirleyiniz: ")
+        pswrd = input("Şifre belirleyin: ")
 
-        elif giris == 2:
-            while True:
-                kullanici_ad = input("Kullanıcı adınızı belirleyiniz: ")
-                pswrd = input("Şifre belirleyin: ")
-                if len(pswrd) <= 5:
-                    print("\nLütfen 5 kelimeden büyük şifre belirleyiniz:\n")
-                    continue
-                else:
-                    personel += [kullanici_ad, pswrd]
-                    dbcursor.execute("insert into personel_giris values (?, ?)", personel)
-                    db.commit()
-                    print("Tebrikler kayıt oluşturuldu..")
-                    break
-        else:
-            print("Geçersiz giriş..")
+        if len(pswrd) <= 5:
+            print("\nLütfen 5 karakterden büyük şifre belirleyiniz:\n")
             continue
-        print("Giriş yapılabilir.:)")
+        else:
+            dbcursor.execute("insert into personel_giris values ('%s', '%s')" % (kullanici_ad,pswrd))
+            db.commit()
+            print("Tebrikler kayıt oluşturuldu..")
+            return True
 
-    """
+    return False
+
+
+
+def AnaGiris():
+    secim = int(input("""
+    Lütfen girişinizi belirleyiniz:
+        1- Personel girişi
+        2- Müşteri girişi
+        3- Yeni Kayit
+
+    """))
+    if secim == 1:
+        KullaniciGirisi()
+    elif secim == 2:
+        KullaniciGirisi()
+    elif secim == 3:
+        KullaniciKayit()
+
+
+
+
+if __name__ == "__main__":
+    if GIRIS_GEREKLI:
+        while True:
+            if AnaGiris():
+                break
+
     print("""        
     # # # # # # # # # # # # # # # # # # # # # # #
     #            Ü R Ü N  M E N Ü S Ü           #
     # # # # # # # # # # # # # # # # # # # # # # #
     #                                           #
-    #                                           #
+    #                                           #ksiyon
     #         [1]... Ürün  Ekle                 #
     #         [2]... Ürün Sil                   #
     #                                           #
@@ -132,20 +147,23 @@ if secim == 1:
             continue
 
 
-if secim == 2:
-    print("""
-    # # # # # # # # # # # # # # # # # # # # # # #
-    #            S A T I Ş  M E N Ü S Ü         #
-    # # # # # # # # # # # # # # # # # # # # # # #
-    #                                           #
-    #                                           #
-    #    Müşteri Adı
-               Miktar
-               Tutar
-    # # # # # # # # # # # # # # # # # # # # # # #
-    #                                           #
-    #                                           #
-    # # # # # # # # # # # # # # # # # # # # # # #
-    """)
 
-    islem = int(input("Almak istediğiniz ürünü giriniz: "))
+def Satis():
+    if secim == 2:
+        print("""
+        # # # # # # # # # # # # # # # # # # # # # # #
+        #            S A T I Ş  M E N Ü S Ü         #
+        # # # # # # # # # # # # # # # # # # # # # # #
+        #                                           #
+        #                                           #
+        #    Müşteri Adı
+                   Miktar
+                   Tutar
+        # # # # # # # # # # # # # # # # # # # # # # #
+        #                                           #
+        #                                           #
+        # # # # # # # # # # # # # # # # # # # # # # #
+        """)
+
+        islem = int(input("Almak istediğiniz ürünü giriniz: "))
+
